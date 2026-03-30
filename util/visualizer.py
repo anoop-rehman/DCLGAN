@@ -69,6 +69,13 @@ class Visualizer():
         self.name = opt.name
         self.port = opt.display_port
         self.saved = False
+        self.use_wandb = getattr(opt, 'use_wandb', False)
+        if self.use_wandb:
+            import wandb
+            self.wandb = wandb
+            if wandb.run is None:
+                wandb.init(project='DCLGAN', name=opt.name, config=vars(opt))
+            self.wandb_step = 0
         if self.display_id > 0:  # connect to a visdom server given <display_port> and <display_server>
             import visdom
             self.plot_data = {}
@@ -165,6 +172,13 @@ class Visualizer():
                 except VisdomExceptionBase:
                     self.create_visdom_connections()
 
+        if self.use_wandb:
+            wandb_images = {}
+            for label, image in visuals.items():
+                image_numpy = util.tensor2im(image)
+                wandb_images[label] = self.wandb.Image(image_numpy)
+            self.wandb.log(wandb_images, step=self.wandb_step)
+
         if self.use_html and (save_result or not self.saved):  # save images to an HTML file if they haven't been saved.
             self.saved = True
             # save images to the disk
@@ -240,3 +254,8 @@ class Visualizer():
         print(message)  # print the message
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)  # save the message
+        if self.use_wandb:
+            wandb_losses = {('loss/' + k): v for k, v in losses.items()}
+            wandb_losses['epoch'] = epoch
+            self.wandb_step += 1
+            self.wandb.log(wandb_losses, step=self.wandb_step)
