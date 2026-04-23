@@ -1,6 +1,6 @@
 # DCLGAN
 
-This fork adapts the original [DCLGAN repo](https://github.com/JunlinHan/DCLGAN) for sim-to-real style transfer on the `pushBlockWide` RL environment (84x84 images), with modernized tooling for running on the ComputeCanada cluster.
+This fork fixes versioning issues and modernizes the tooling in the [DCLGAN repo](https://github.com/JunlinHan/DCLGAN) for training on cluster.
 
 <img width="789" height="570" alt="Screenshot 2026-04-23 at 2 21 14 AM" src="https://github.com/user-attachments/assets/9cbcbe53-30c5-4274-8634-a591020c03f6" />
 
