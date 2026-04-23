@@ -1,3 +1,43 @@
+# Fork: Sim-to-Real Style Transfer for pushBlockWide
+
+This fork adapts the original DCLGAN repo for sim-to-real style transfer on the `pushBlockWide` RL environment (84x84 images), with modernized tooling for running on the ComputeCanada cluster.
+
+## Changes from the upstream repo
+
+### Repo-level changes (apply to all runs)
+
+- **PyTorch 2.x compatibility fix** — `models/dcl_model.py` and `models/simdcl_model.py`: changed `torch.nn.L1Loss('sum')` to `torch.nn.L1Loss(reduction='sum')`. The positional-string form crashes on modern PyTorch.
+- **Weights & Biases logging replaces visdom** — `options/train_options.py` adds a `--use_wandb` flag; `util/visualizer.py` initializes a wandb run and logs scalar losses (via `print_current_losses`) and image panels (via `display_current_results`). Visdom is no longer required.
+- **Robust loading of corrupt images** — `data/unaligned_dataset.py`: on `PIL.Image.open` failure, skip to the next valid image instead of crashing. The `train_sim` split contained ~454 empty files.
+
+### New files
+
+- `run_train.sh` — SLURM sbatch script for the grumpifycat smoke-test run (H100 MIG 1g.10gb, short wall time).
+- `run_sim2real_dcl.sh` — sbatch script for baseline DCL training on sim→real (H100 MIG 2g.20gb, 10h).
+- `run_sim2real_cut.sh` — same, with `--model cut`.
+- `run_sim2real_dcl_tuned.sh` — DCL with tuned loss weights to prioritize structural fidelity: `--lambda_GAN 0.5 --lambda_NCE 10.0 --lambda_IDT 5.0`.
+- `run_sim2real_cyclegan.sh` — CycleGAN baseline for comparison: `--model cycle_gan --gan_mode lsgan`.
+
+All sim2real scripts use 84x84-appropriate settings: `--load_size 96 --crop_size 84 --netG resnet_6blocks --batch_size 4 --print_freq 1000 --display_freq 1000`. Datasets are symlinked under `datasets/sim2real/{trainA,trainB,testA,testB}`.
+
+### Running on ComputeCanada
+
+Environment setup (one-time):
+```bash
+module load python/3.11.5 cuda/12.6
+python -m venv ~/envs/dclgan
+source ~/envs/dclgan/bin/activate
+pip install --no-index torch torchvision wandb dominate
+```
+
+Put your W&B key in `.env` at the repo root as `WANDB_API_KEY=...`. Submit jobs with `sbatch run_sim2real_<variant>.sh`.
+
+---
+
+The original upstream README follows below.
+
+---
+
 [arXiv](https://arxiv.org/abs/2104.07689)  |  [Video](https://youtu.be/w0oltXvLgmI)  |  [Slide](imgs/DCLGAN_slide.pptx)
 
 # Dual Contrastive Learning Adversarial Generative Networks (DCLGAN)
