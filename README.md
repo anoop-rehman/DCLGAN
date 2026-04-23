@@ -1,4 +1,4 @@
-# Sim-to-Real Style Transfer for pushBlockWide
+# DCLGAN
 
 This fork adapts the original [DCLGAN repo](https://github.com/JunlinHan/DCLGAN) for sim-to-real style transfer on the `pushBlockWide` RL environment (84x84 images), with modernized tooling for running on the ComputeCanada cluster.
 
